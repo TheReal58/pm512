@@ -126,8 +126,9 @@ GameManager.prototype.move = function (direction) {
         var next      = self.grid.cellContent(positions.next);
 
         // Only one merger per row traversal?
-        if (next && next.value === tile.value && !next.mergedFrom) {
-          var merged = new Tile(positions.next, tile.value * 2);
+        if (next && !next.mergedFrom
+            && Math.abs(next.value) === Math.abs(tile.value)) {
+          var merged = new Tile(positions.next, tile.value + next.value);
           merged.mergedFrom = [tile, next];
 
           self.grid.insertTile(merged);
@@ -137,10 +138,12 @@ GameManager.prototype.move = function (direction) {
           tile.updatePosition(positions.next);
 
           // Update the score
-          self.score += merged.value;
+          self.score += Math.abs(merged.value);
 
-          // The mighty 2048 tile
-          if (merged.value === -512) self.won = true;
+          // The mighty ±512 tiles
+          if (merged.value === 512) self.wonHigh = true;
+          if (merged.value === -512) self.wonLow = true;
+          self.won = self.wonHigh && self.wonLow;
         } else {
           self.moveTile(tile, positions.farthest);
         }
